@@ -1,87 +1,100 @@
 package audiofinger;
 
-import java.awt.Color;
+import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Set;
 
 import javax.imageio.ImageIO;
 
+import org.tc33.jheatchart.HeatChart;
+
+/**
+ * 
+ * @author Paco
+ *
+ */
 public class Spectrogram {
 
 	public LinkedHashMap<Integer,Double> zones = new LinkedHashMap<Integer,Double>();
-	public LinkedHashMap<Double,Integer> unique = new LinkedHashMap<Double,Integer>();
-	public LinkedHashMap<Integer, Color> colorzones = new LinkedHashMap<Integer,Color>();
-	public ArrayList<LinkedHashMap> spec = new ArrayList<LinkedHashMap>();
 	
-	public int accuracy = 1; //1, 2, 4 or 8
-	public boolean writePicture = false;
-	//public double[][] spectrogram = new double[32768][2000];
+	public int accuracy = 1; //1, 2, or 4
+	public boolean writePicture = false; //if true, generate the picture of the spectrogram
+	public long durationSpectrogram = 0; // execution time of the spectrogram
 	
-	/**
-	 * 
-	 * @param stft
-	 * @param filename
-	 * @throws IOException
-	 */
+	public double[][] spectrogram; //the spectrogram table
+	
 	public void generateSpectrogram(STFT stft, String filename) throws IOException{
+		//store start time to calculate execution time
+		long startTime = System.nanoTime();
+		
+		//instanciate new spectrogram
+		int nbzones = (stft.getFreqMax()-stft.getFreqMin())/10;
 		Set cles = stft.getTimeFreqMagn().keySet();
+		spectrogram = new double[nbzones*accuracy][cles.size()];
+		
 		Iterator it = cles.iterator();
-		int iter = 0;	
+		int iter = 0;			
 		while(it.hasNext()){
 			Object cle = it.next();
-			Object[] freq = stft.getTimeFreqMagn().get(cle).keySet().toArray();
-			Object[] magn = stft.getTimeFreqMagn().get(cle).values().toArray();
-			fillZones(stft,freq,magn);
+			Object[] freq = stft.getTimeFreqMagn().get(cle).keySet().toArray();//get frequencies
+			Object[] magn = stft.getTimeFreqMagn().get(cle).values().toArray();//get magnitudes
+			calculateZones(stft,freq,magn);//determine frequency zones
 			Object[] valzones = zones.values().toArray();			
-			fillUnique(zones);
-			fillColors(valzones, zones, unique);
+			for(int v=0;v<valzones.length;v++){
+				spectrogram[v][iter] = (double)valzones[v];//fill the table
+			}
 			iter++;
-			spec.add(colorzones);
 		}//end of while
 		
-		System.out.println("End color list");	
-		System.out.println("Size list color: "+spec.get(0).size());
-
-		if(writePicture){ 
-			generatePicture(spec, filename);
-		}
+		long endTime = System.nanoTime();
+		setDurationSpectrogram((endTime - startTime) / 1000000);
+		System.out.println("End generation spectrogram !");
 		
+		if(writePicture){
+			generatePicture(filename,spectrogram);//Heatmap
+		}
 	}
 	
 	/**
-	 * 
-	 * @param spec
+	 * Generate the spectrogram picture (cropped)
 	 * @param filename
 	 * @throws IOException
 	 */
-	public void generatePicture(ArrayList<LinkedHashMap> spec, String filename) throws IOException{
-		BufferedImage img = new BufferedImage(spec.size(), spec.get(0).size(),BufferedImage.TYPE_INT_RGB);
-		for(int u=0;u<spec.size();u++){
-			for(int uu=0;uu<spec.get(0).size();uu++){
-				Color truc = (Color)spec.get(u).get(uu);		
-				img.setRGB(u, uu, truc.getRGB());
-			}
-		}
-		BufferedImage img2 = flipHorizontal(img); 
+	public void generatePicture(String filename, double[][] spec) throws IOException{
+		HeatChart map = new HeatChart(spec);
+		BufferedImage img = (BufferedImage) map.getChartImage();
+		BufferedImage img2 = flipHorizontal(img);
+		img2 = cropImage(img2,new Rectangle(img2.getWidth(),img2.getHeight()/4),0,img2.getHeight()-(img2.getHeight()/4));
 		ImageIO.write(img2, "PNG", new File(filename+".png"));
+		System.out.println("End generation picture !");
 	}
 	
 	/**
-	 * 
+	 * Crop a picture
+	 * @param src
+	 * @param rect
+	 * @param x
+	 * @param y
+	 * @return
+	 */
+	public BufferedImage cropImage(BufferedImage src, Rectangle rect, int x, int y) {
+		BufferedImage dest = src.getSubimage(x, y, rect.width, rect.height);
+	    return dest; 
+	}
+	
+	/**
+	 * Determine the number of frequency zones and calculate the magnitude average for each
 	 * @param stft
 	 * @param freq
 	 * @param magn
 	 */
-	public void fillZones(STFT stft, Object[] freq, Object[] magn){
+	public void calculateZones(STFT stft, Object[] freq, Object[] magn){
 		int nbzones = (stft.getFreqMax()-stft.getFreqMin())/10;
 		for(int i=0;i<nbzones*accuracy;i++){
 			int zonebegin = i*(100/accuracy)+stft.getFreqMin();
@@ -96,46 +109,11 @@ public class Spectrogram {
 			}
 			if(res2==0){res2=1;}//avoid infinite value
 			zones.put(i,res/res2);
-
 		}
 	}
 	
 	/**
-	 * 
-	 * @param zones
-	 */
-	public void fillUnique(LinkedHashMap zones){
-		ArrayList<Double> order = new ArrayList<Double>(zones.values());
-		Set<Double> un = new HashSet<Double>(order);
-		order.clear();
-		order.addAll(un);
-		Collections.sort(order,Collections.reverseOrder());
-		int degrade = (int) 255 / order.size();
-		for(int p=0;p<order.size();p++){
-			if(p==0){
-				unique.put(order.get(p), p);
-			}
-			else{
-				unique.put(order.get(p), p+degrade);
-			}	
-		}
-	}
-	
-	/**
-	 * 
-	 * @param valzones
-	 * @param zones
-	 * @param unique
-	 */
-	public void fillColors(Object[] valzones, LinkedHashMap zones, LinkedHashMap unique){
-		for(int t=0;t<zones.size()-1;t++){
-			Color c = new Color(255-(int)unique.get((double)valzones[t]),255-(int)unique.get((double)valzones[t]),255-(int)unique.get((double)valzones[t]));
-			colorzones.put(t, c);
-		}
-	}
-	
-	/**
-	 * Flip horizontaly the picture
+	 * Flip horizontaly a picture
 	 * @param src
 	 * @return
 	 */
@@ -161,8 +139,29 @@ public class Spectrogram {
 	public void setAccuracy(int accuracy) {
 		this.accuracy = accuracy;
 	}
-	
-	
-	
-	
+
+	/**
+	 * 
+	 * @return
+	 */
+	public long getDurationSpectrogram() {
+		return durationSpectrogram;
+	}
+
+	/**
+	 * 
+	 * @param durationSpectrogram
+	 */
+	public void setDurationSpectrogram(long durationSpectrogram) {
+		this.durationSpectrogram = durationSpectrogram;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public double[][] getSpectrogram() {
+		return spectrogram;
+	}
+
 }//end of class
