@@ -1,11 +1,17 @@
 package audioWavePrint;
 
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class GestionBD {
 
-	//Remplissage des tables
+	// Remplissage des tables
 	public static ArrayList<byte[]> Decomposition(byte[] subFingerprint, int l) {
 		int p = subFingerprint.length;
 		ArrayList<byte[]> Decomposition = new ArrayList<byte[]>();
@@ -54,39 +60,96 @@ public class GestionBD {
 
 		return Decomposition;
 	}
+	
+	public static boolean existe(Connection connection, String nomTable)
+			throws SQLException{
+boolean existe;
+DatabaseMetaData dmd = connection.getMetaData();
+ResultSet tables = dmd.getTables(connection.getCatalog(),null,nomTable,null);
+existe = tables.next();
+tables.close();
+return existe;	
+}
+	
+	public static void CreationTables(int l) throws SQLException{
+		Connection C = ConnectionManager.Connect();
+		for(int i = 0 ;i<l;i++){
+			if (existe(C, "SIGNATURES"+i)){
+			 Statement statebis = C.createStatement();
+			 String querybis = "DROP TABLE \"SIGNATURES"+i+'"';
+			 System.out.println(querybis);
+			
+			statebis.execute(querybis);}
+			Statement state = C.createStatement();
 
+			String query = "CREATE TABLE \"SIGNATURES"
+					+ i
+					+ '"'
+					+ '('
+					+ " \"Signature_IDMovie\" integer NOT NULL,"
+					+ "  \"Signature_Fingerprint\" bytea[] NOT NULL,"
+					+ "  CONSTRAINT cle"
+					+ i
+					+ " PRIMARY KEY (\"Signature_IDMovie\", \"Signature_Fingerprint\") )";
+//					+ "WITH (OIDS=TRUE)";
+			System.out.println(query);
+
+			state.execute(query);}
+		
+	}
 	public static void RemplissageDesTables(ArrayList<byte[]> Décomposition,
-			int l) {
-		// TODO
+			int l) throws SQLException {
+		Connection C = ConnectionManager.Connect();
+
+		for(int i = 0 ; i<l;i++){
+			Statement state = C.createStatement();
+			String Query="INSERT INTO SIGNATURES"+i+" (\"Signature_IDMovie\", \"Signature_Fingerprint\") VALUES("+i+", "+i*2+")";
+			System.out.println(Query);
+			state.executeUpdate(Query);
+		}
+//		 Statement statebis = C.createStatement();
+//		 String querybis = "DROP TABLE \"SIGNATURES"+l+'"';
+//		 System.out.println(querybis);
+//		
+//		statebis.executeQuery(querybis);
+		
+		
+//		ResultSetMetaData resultMeta = result.getMetaData();
+
+//		System.out.println("- Il y a " + resultMeta.getColumnCount()
+//				+ " colonnes dans cette table");
+//		for (int i = 1; i <= resultMeta.getColumnCount(); i++)
+//			System.out.println("\t *" + resultMeta.getColumnName(i));
+
 	}
 
-	
-	
-	//Processus pour retrouver la musique correspondante
+	// Processus pour retrouver la musique correspondante
 	public static ArrayList<Integer> moviesToCompare(byte[] Signature, int l,
 			int seuilVotes) {
 		ArrayList<byte[]> Decompo = Decomposition(Signature, l);
-		HashMap<Integer,Integer> MovieScore = new HashMap<Integer,Integer>();
+		HashMap<Integer, Integer> MovieScore = new HashMap<Integer, Integer>();
 		ArrayList<Integer> CurrentMovies = new ArrayList<Integer>();
-		for(int i = 0 ;i< l ; i ++){
-			CurrentMovies=findMovieInTable(Decompo.get(i), i);
-			for(int movie:CurrentMovies){
-				if(MovieScore.containsKey(movie)){
-					MovieScore.put(movie, MovieScore.get(movie)+1);}
-				else{
+		for (int i = 0; i < l; i++) {
+			CurrentMovies = findMovieInTable(Decompo.get(i), i);
+			for (int movie : CurrentMovies) {
+				if (MovieScore.containsKey(movie)) {
+					MovieScore.put(movie, MovieScore.get(movie) + 1);
+				} else {
 					MovieScore.put(movie, 1);
 				}
 			}
 		}
-		
+
 		ArrayList<Integer> FinalMovies = new ArrayList<Integer>();
-		for(Integer i: MovieScore.keySet()){
-			if(MovieScore.get(i)>=seuilVotes)FinalMovies.add(i);
+		for (Integer i : MovieScore.keySet()) {
+			if (MovieScore.get(i) >= seuilVotes)
+				FinalMovies.add(i);
 		}
 		return FinalMovies;
 	}
-	
-	public static ArrayList<Integer> findMovieInTable(byte[] subSignature, int numero_table) {
+
+	public static ArrayList<Integer> findMovieInTable(byte[] subSignature,
+			int numero_table) {
 		return null;
 	}
 
@@ -148,7 +211,7 @@ public class GestionBD {
 		return FindMatch(Signature, listSignatures);
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws SQLException {
 		/** Création d'une matrice de test réglages peuvent être modifiés */
 		double[][] spectro = CreationMatriceTest.MatriceTest(40, 50);
 		spectro = CreationMatriceTest.RemplissageMatriceRandom(spectro, 0);
@@ -208,6 +271,8 @@ public class GestionBD {
 		/**
 		 * Ecriture dans les DB
 		 */
+		CreationTables(8);
+		RemplissageDesTables(deco, 8);
 
 	}
 }
