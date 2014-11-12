@@ -1,19 +1,11 @@
 package audiofinger;
 
-import java.awt.Color;
-import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Set;
-
-import org.tc33.jheatchart.HeatChart;
 
 /**
  * 
  * @author Paco
- * http://jvalentino2.tripod.com/dft/index.html
+ *
  */
 public class Test {
 	
@@ -28,27 +20,21 @@ public class Test {
 		STFT stft = new STFT();
 		Spectrogram spectrogram = new Spectrogram();
 
-		//framesize = 2048 bytes
+		//framesize = 4096 bytes
 		// overlap = 485 bytes (equals to 11ms at 44100 samples per sec)
 		 
 		//stft.setWriteFilesStft(true);
-		stft.setFreqMin(200);
-		stft.performStft("ffmpeg/bin/outtest.wav", 4096, 485);
-		
+		//stft.setFreqMin(200);
+		//stft.setFreqMax(3500);
+		stft.performStft("ffmpeg/bin/outtest.wav", 4096, 200);
+
 		System.out.println("Duration of STFT : "+stft.getDurationStft()+"ms");
-		System.out.println("Number of lists generated: "+stft.getTimeFreqMagn().keySet().size());
 		
-		//spectrogram.tableSpectrogram(stft);
-		spectrogram.setAccuracy(2);
+		spectrogram.setAccuracy(4);
 		spectrogram.setWritePicture(true);
+		spectrogram.generateSpectrogram(stft, "test");
 		
-		
-		for(String lol : stft.getTimeFreqMagn().keySet()){
-			System.out.println(lol);
-			System.out.println(stft.getTimeFreqMagn().get(lol).keySet());
-			System.out.println(stft.getTimeFreqMagn().get(lol).values());
-		}
-		spectrogram.generateSpectrogram(stft, "spectrogramTest");
+		System.out.println("Duration of Spectrogram : "+spectrogram.getDurationSpectrogram()+"ms");
 		
 	}//end of main
 		

@@ -3,7 +3,6 @@ package audiofinger;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 
 /**
@@ -61,12 +60,9 @@ public class STFT {
 		System.out.println("h = "+h+" (length of each time interval in seconds)");
 				
 		int sizeframe = framesize;
-		//int incre = 0;
+		
 		for(int i=0;i<=n;i+=overlap){
 			writeFreqMagn(x, sizeframe, i, sample_rate, h, T);
-			//incre++;
-			//writeFreqMagn(x, sizeframe, i+overlap, sample_rate, h, T);
-			//incre++;
 		}
 		
 		//store end time to calculate execution time
@@ -202,18 +198,34 @@ public class STFT {
 		this.durationStft = durationStft;
 	}
 
+	/**
+	 * 
+	 * @return
+	 */
 	public int getFreqMin() {
 		return freqMin;
 	}
 
+	/**
+	 * 
+	 * @param freqMin
+	 */
 	public void setFreqMin(int freqMin) {
 		this.freqMin = freqMin;
 	}
 
+	/**
+	 * 
+	 * @return
+	 */
 	public int getFreqMax() {
 		return freqMax;
 	}
 
+	/**
+	 * 
+	 * @param freqMax
+	 */
 	public void setFreqMax(int freqMax) {
 		this.freqMax = freqMax;
 	}
