@@ -2,12 +2,14 @@ package audioWavePrint;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 
 public class GestionBD {
 
@@ -60,72 +62,78 @@ public class GestionBD {
 
 		return Decomposition;
 	}
-	
+
 	public static boolean existe(Connection connection, String nomTable)
-			throws SQLException{
-boolean existe;
-DatabaseMetaData dmd = connection.getMetaData();
-ResultSet tables = dmd.getTables(connection.getCatalog(),null,nomTable,null);
-existe = tables.next();
-tables.close();
-return existe;	
-}
-	
-	public static void CreationTables(int l) throws SQLException{
-		Connection C = ConnectionManager.Connect();
-		for(int i = 0 ;i<l;i++){
-			if (existe(C, "SIGNATURES"+i)){
-			 Statement statebis = C.createStatement();
-			 String querybis = "DROP TABLE \"SIGNATURES"+i+'"';
-			 System.out.println(querybis);
-			
-			statebis.execute(querybis);}
-			Statement state = C.createStatement();
-
-			String query = "CREATE TABLE \"SIGNATURES"
-					+ i
-					+ '"'
-					+ '('
-					+ " \"Signature_IDMovie\" integer NOT NULL,"
-					+ "  \"Signature_Fingerprint\" bytea[] NOT NULL,"
-					+ "  CONSTRAINT cle"
-					+ i
-					+ " PRIMARY KEY (\"Signature_IDMovie\", \"Signature_Fingerprint\") )";
-//					+ "WITH (OIDS=TRUE)";
-			System.out.println(query);
-
-			state.execute(query);}
-		
+			throws SQLException {
+		boolean existe;
+		DatabaseMetaData dmd = connection.getMetaData();
+		ResultSet tables = dmd.getTables(connection.getCatalog(), null,
+				nomTable, null);
+		existe = tables.next();
+		tables.close();
+		return existe;
 	}
+
+	public static void CreationTables(int l) throws SQLException {
+		Connection C = ConnectionManager.Connect();
+		if (existe(C,"SIGNATURES")) {
+			Statement statebis = C.createStatement();
+			String querybis = "DROP TABLE \"SIGNATURES\"";
+			System.out.println(querybis);
+
+			statebis.execute(querybis);
+		}
+		Statement state = C.createStatement();
+		String fingerprints_columns = "";
+		for (int i = 0; i < l; i++) {
+			fingerprints_columns = fingerprints_columns
+					+ "Signature_Fingerprint" + i
+					+ " bytea NOT NULL,";
+		}
+		String query = "CREATE TABLE \"SIGNATURES\" " + '('
+				+ "ID SERIAL,"
+				+ " Signature_IDMovie integer NOT NULL,"
+				+ fingerprints_columns + " PRIMARY KEY (ID) )";
+		System.out.println(query);
+		//
+		state.execute(query);
+
+	}
+
 	public static void RemplissageDesTables(ArrayList<byte[]> Décomposition,
-			int l) throws SQLException {
+			int l , int LeMovie) throws SQLException {
 		Connection C = ConnectionManager.Connect();
 
-		for(int i = 0 ; i<l;i++){
-			Statement state = C.createStatement();
-			String Query="INSERT INTO SIGNATURES"+i+" (\"Signature_IDMovie\", \"Signature_Fingerprint\") VALUES("+i+", "+i*2+")";
-			System.out.println(Query);
-			state.executeUpdate(Query);
+		String valuestoInsert="(";
+		String selectedfields = "(Signature_IDMovie";
+		for(int i =  0 ; i < l ; i ++){
+			valuestoInsert =valuestoInsert+ "? ,";
+			selectedfields = selectedfields + ",Signature_Fingerprint" + i;
 		}
-//		 Statement statebis = C.createStatement();
-//		 String querybis = "DROP TABLE \"SIGNATURES"+l+'"';
-//		 System.out.println(querybis);
-//		
-//		statebis.executeQuery(querybis);
+		valuestoInsert = valuestoInsert + "?)";
+		selectedfields = selectedfields +")";
+		System.out.println(valuestoInsert);
+//		String query = 
+		PreparedStatement ps = C.prepareStatement("INSERT INTO \"SIGNATURES\" "+selectedfields+" VALUES "+valuestoInsert);
+		System.out.println(ps);
+//		ps.setInt(1, 0);
+		ps.setInt(1, LeMovie);
+
+		for(int i =  0 ; i < l ; i ++){
+			System.out.println((i+2));
+			ps.setBytes((i+2), Décomposition.get(i));
+		}
+		System.out.println(ps);
+		
+		ps.executeUpdate();
+		ps.close();
 		
 		
-//		ResultSetMetaData resultMeta = result.getMetaData();
-
-//		System.out.println("- Il y a " + resultMeta.getColumnCount()
-//				+ " colonnes dans cette table");
-//		for (int i = 1; i <= resultMeta.getColumnCount(); i++)
-//			System.out.println("\t *" + resultMeta.getColumnName(i));
-
 	}
 
 	// Processus pour retrouver la musique correspondante
 	public static ArrayList<Integer> moviesToCompare(byte[] Signature, int l,
-			int seuilVotes) {
+			int seuilVotes) throws SQLException {
 		ArrayList<byte[]> Decompo = Decomposition(Signature, l);
 		HashMap<Integer, Integer> MovieScore = new HashMap<Integer, Integer>();
 		ArrayList<Integer> CurrentMovies = new ArrayList<Integer>();
@@ -149,16 +157,42 @@ return existe;
 	}
 
 	public static ArrayList<Integer> findMovieInTable(byte[] subSignature,
-			int numero_table) {
-		return null;
+			int numero_Signature) throws SQLException {
+		Connection C = ConnectionManager.Connect();
+		ArrayList<Integer> retrievedMusics = new ArrayList<Integer>();
+		PreparedStatement ps = C.prepareStatement("SELECT signature_idmovie"
+				+ " FROM \"SIGNATURES\" "
+				+ "WHERE Signature_Fingerprint" + numero_Signature+" = ?");
+		ps.setBytes(1, subSignature);
+		ResultSet rs = ps.executeQuery();
+		while (rs.next()) {
+			retrievedMusics.add(rs.getInt(1));
+		}
+		System.out.println(retrievedMusics);
+		return retrievedMusics;
 	}
 
-	public byte[] RetrieveSignatureInTable(int movie, int numero_table) {
-		// TODO
-		return null;
+	public static byte[] RetrieveSignatureInTable(int music, int numero_Signature) throws SQLException {
+		Connection C = ConnectionManager.Connect();
+		 byte[] subFingerprint = null;
+		PreparedStatement ps = C.prepareStatement("SELECT Signature_Fingerprint" + numero_Signature+""
+				+ " FROM \"SIGNATURES\" "
+				+ "WHERE signature_idmovie = ?");
+		ps.setInt(1	, music);
+		ResultSet rs = ps.executeQuery();
+		while (rs.next()) {
+		  subFingerprint = rs.getBytes(1);
+		  for(int i  = 0 ; i< subFingerprint.length;i++){
+				System.out.print(subFingerprint[i]);
+			}
+		  System.out.println();
+		 		}
+		rs.close();
+		ps.close();
+		return subFingerprint;
 	}
 
-	public byte[] RetrieveFullSignature(int movie, int l) {
+	public byte[] RetrieveFullSignature(int movie, int l) throws SQLException {
 		ArrayList<Byte> listSignature = new ArrayList<Byte>();
 		byte[] tmp = null;
 		for (int i = 0; i < l; i++) {
@@ -202,7 +236,7 @@ return existe;
 		return imax;
 	}
 
-	public int RetrievalProcess(byte[] Signature, int l, int seuilVotes) {
+	public int RetrievalProcess(byte[] Signature, int l, int seuilVotes) throws SQLException {
 		ArrayList<Integer> movies = moviesToCompare(Signature, l, seuilVotes);
 		ArrayList<byte[]> listSignatures = new ArrayList<byte[]>();
 		for (int movie : movies) {
@@ -212,6 +246,7 @@ return existe;
 	}
 
 	public static void main(String[] args) throws SQLException {
+//		for(int n  = 0  ; n< 5;n++){
 		/** Création d'une matrice de test réglages peuvent être modifiés */
 		double[][] spectro = CreationMatriceTest.MatriceTest(40, 50);
 		spectro = CreationMatriceTest.RemplissageMatriceRandom(spectro, 0);
@@ -271,8 +306,19 @@ return existe;
 		/**
 		 * Ecriture dans les DB
 		 */
-		CreationTables(8);
-		RemplissageDesTables(deco, 8);
+		//Creation table entraine aussi la destruction
+//		CreationTables(8);
+		Random R= new Random();
+		 RemplissageDesTables(deco, 8 ,5);
+System.out.println("yolo");
+	byte[] a = RetrieveSignatureInTable(5,2);
+	byte[] b = RetrieveSignatureInTable(5,3);
 
+	ArrayList<Integer> A = findMovieInTable(a, 2);
+	ArrayList<Integer> B = findMovieInTable(b, 3);
+System.out.println(A);
+System.out.println(B);
+	
 	}
+//	}
 }
