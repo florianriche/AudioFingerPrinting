@@ -58,11 +58,9 @@ public class STFT {
 		//get the time interval at each equidistant point
 		float h = sound.getIntervalTime();
 		System.out.println("h = "+h+" (length of each time interval in seconds)");
-				
-		int sizeframe = framesize;
 		
 		for(int i=0;i<=n;i+=overlap){
-			writeFreqMagn(x, sizeframe, i, sample_rate, h, T);
+			writeFreqMagn(x, framesize, i, sample_rate, h, T);
 		}
 		
 		//store end time to calculate execution time
@@ -146,13 +144,12 @@ public class STFT {
 	 */
 	public ArrayList<Double> calculateFFT(int[] signal,int numberofpoints)
     {           
-        final int mNumberOfFFTPoints = numberofpoints;
         Complex[] y;
-        Complex[] complexSignal = new Complex[mNumberOfFFTPoints];
+        Complex[] complexSignal = new Complex[numberofpoints];
         ArrayList<Double> absSignal = new ArrayList<Double>();
         
         //fill complex signal
-        for(int i = 0; i < mNumberOfFFTPoints; i++){
+        for(int i = 0; i < numberofpoints; i++){
         	complexSignal[i] = new Complex(signal[i],0);
         }
 
@@ -160,7 +157,7 @@ public class STFT {
         y = new FFT().fft(complexSignal);
 
         //calculate magnitude and add to result  
-        for(int i = 0; i < mNumberOfFFTPoints/2; i++){
+        for(int i = 0; i < numberofpoints/2; i++){
             absSignal.add(i,Math.sqrt(Math.pow(y[i].re(), 2) + Math.pow(y[i].im(), 2)));
         }
         return absSignal;
