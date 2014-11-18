@@ -1,10 +1,5 @@
 import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
-
 
 
 public class ImageMatrixIO {
@@ -16,8 +11,14 @@ public class ImageMatrixIO {
 		
 		for( int i = 0 ; i < w ; i++){
 			for (int j = 0 ; j < h ; j++){
-				int value = (int) mat[i][j];
-				int color = value << 16 | value << 8 | value;
+				int value = (int) Math.abs(mat[i][j]);
+				int color;
+				if (value > 5){
+					color = 0xFFFFFF;
+				}
+				else {
+					color = 0x00;
+				}
 				img.setRGB(i, j, color);
 			}
 		}
@@ -38,16 +39,4 @@ public class ImageMatrixIO {
 		
 		return mat;
 	}
-	
-	/*public static void main(String[] args) throws IOException{
-		
-		double mat[][]={{250.,0.0,0.0},{0.,0.,0.},{0.,0.,250.}};
-		
-		BufferedImage img = matToImage(mat);
-		
-		File outputfile = new File("output.png");
-		ImageIO.write(img, "png", outputfile);
-		
-	}*/
-
 }
