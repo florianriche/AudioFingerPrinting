@@ -4,14 +4,18 @@ import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 
+/**
+ * 
+ * @author Paco
+ *
+ */
 public class Cassandra {
 	
 	public Cluster cluster;
 	public Session session;
 	
-	
 	/**
-	 * 
+	 * Get the result of a request
 	 * @param req
 	 * @return
 	 */
@@ -20,7 +24,7 @@ public class Cassandra {
 	}
 	
 	/**
-	 * 
+	 * Execute a Cassandra request
 	 * @param req
 	 */
 	public void executeRequest(String req){
@@ -28,14 +32,14 @@ public class Cassandra {
 	}
 	
 	/**
-	 * 
+	 * Close a Cassandra session
 	 */
 	public void closeConnection(){
 		cluster.close();
 	}
 	
 	/**
-	 * 
+	 * Connect to a Cassandra keyspace
 	 * @param host
 	 * @param database
 	 * @return
