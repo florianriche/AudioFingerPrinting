@@ -96,6 +96,9 @@ public class STFT {
 		//limit array to the given offset
 		int test[] = new int[size];
 		int o = 0;
+		if((offset+size)>=sig.length){
+			return;
+		}
 		for(int y=offset;y<offset+size;y++){ 
 			test[o] = sig[y];
 			o++;

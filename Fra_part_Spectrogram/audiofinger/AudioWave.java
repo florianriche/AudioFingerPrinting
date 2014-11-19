@@ -88,9 +88,9 @@ public class AudioWave {
 		setFilename(file.getName());
 		setSampleRate(audioFormat.getSampleRate());
 		setLengthSound(audioInputStream.getFrameLength() / audioFormat.getFrameRate());
-		setEqPoints((int) (lengthSound * sampleRate) / 2);
+		setEqPoints((int) (lengthSound * sampleRate)*2);
 		setIntervalTime((lengthSound / eqPoints));
-		
+        
 		return byteToInt(soundBytes);
 	}
 	
