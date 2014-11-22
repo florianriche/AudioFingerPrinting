@@ -42,7 +42,7 @@ public class Ffmpeg{
 	public void splitWavFile(String file, float length, int frame) throws InterruptedException{
 		FFSplit ffsplit = null;
 		for(int i=0;i<length;i+=frame){
-			ffsplit = new FFSplit(frame,i, "artist.wav");
+			ffsplit = new FFSplit(frame,i, file);
 			ffsplit.start();
 		}
 		ffsplit.join();
