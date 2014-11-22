@@ -70,7 +70,7 @@ public class Spectrogram {
 	public void generatePicture(String filename, double[][] spec) throws IOException{
 		HeatChart map = new HeatChart(spec);
 		map.setHighValueColour(Color.RED);
-		map.setColourScale(1);
+		map.setColourScale(1.5);
 		BufferedImage img = (BufferedImage) map.getChartImage();
 		BufferedImage img2 = flipHorizontal(img);
 		img2 = cropImage(img2,new Rectangle(img2.getWidth(),img2.getHeight()/4),0,img2.getHeight()-(img2.getHeight()/4));
@@ -166,5 +166,22 @@ public class Spectrogram {
 	public double[][] getSpectrogram() {
 		return spectrogram;
 	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public LinkedHashMap<Integer, Double> getZones() {
+		return zones;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public int getAccuracy() {
+		return accuracy;
+	}
+	
 
 }//end of class

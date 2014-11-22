@@ -69,6 +69,60 @@ public class STFT {
 		System.out.println("End STFT !");
 	}
 	
+	public LinkedHashMap<Double,Double> writeFreqMagnHadoop(int[] sig, int size, int offset, float samplerate,float h, float endtime) throws IOException, InterruptedException{
+		LinkedHashMap<Double,Double> freqMagn= new LinkedHashMap<Double,Double>();
+		
+		float timebegin = (offset-size)*h;
+		if(timebegin<0){return freqMagn;}
+		
+		float timeend = offset*h;	
+		if(timeend>endtime){return freqMagn;}
+		
+		System.out.println("timebegin: "+timebegin+" // timeend: "+timeend);
+
+		//limit array to the given offset
+		int test[] = new int[size];
+		int o = 0;
+		if((offset+size)>=sig.length){
+			return freqMagn;
+		}
+		for(int y=offset;y<offset+size;y++){ 
+			test[o] = sig[y];
+			o++;
+		}
+		/**
+		 * Non optimisé
+		 */
+		
+		//do the fft
+		ArrayList<Double> res = calculateFFT(test,test.length);
+		
+		//copy of the fft results
+		ArrayList<Double> copyres = new ArrayList<Double>(res);
+		
+		//order by highest magnitude
+		Collections.sort(res,Collections.reverseOrder());
+
+//		freqMagn.clear();
+		freqMagn= new LinkedHashMap<Double,Double>(); // List1 :  param1=frequency, param2=magnitude
+
+		//calculate freq and magnitude
+		for(int i=0;i<res.size();i++){
+			//double amplitude = 20*Math.log(2 * res[i]/n);
+//			double magnitude = copyres.get(i);
+			double magnitude = res.get(i);
+
+			double frequency = (copyres.indexOf(res.get(i)) *(sig.length/res.size())* samplerate)/(sig.length);
+//			double frequency = (copyres.indexOf(copyres.get(i)) * samplerate)/res.size();
+//			double frequency = i * h / T * sample_rate;
+			if(frequency>freqMin && frequency<freqMax){
+				freqMagn.put(frequency, magnitude);
+			}			
+		}
+		System.out.println("End FFT !");
+		return freqMagn;
+	}
+	
 	/**
 	 * Do fft and fill the hashmap with special framesize and offset
 	 * @param sig
@@ -230,8 +284,12 @@ public class STFT {
 		this.freqMax = freqMax;
 	}
 
-	
-	
-	
+	/**
+	 * 
+	 * @return
+	 */
+	public LinkedHashMap<Double, Double> getFreqMagn() {
+		return freqMagn;
+	}
 
 }//end of class

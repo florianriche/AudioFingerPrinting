@@ -24,7 +24,7 @@ public class Test {
 		// overlap = 485 bytes (equals to 11ms at 44100 samples per sec)
 		 
 		//stft.setWriteFilesStft(true);
-		stft.performStft("ffmpeg/bin/out2.wav", 4096, 485);
+		stft.performStft("ffmpeg/bin/out440.wav", 4096, 485);
 
 		System.out.println("Duration of STFT : "+stft.getDurationStft()+"ms");
 		
