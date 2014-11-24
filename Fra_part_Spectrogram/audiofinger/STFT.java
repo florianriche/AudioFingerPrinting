@@ -69,6 +69,18 @@ public class STFT {
 		System.out.println("End STFT !");
 	}
 	
+	/**
+	 * Do fft and return the hashmap with special framesize and offset (used for Hadoop)
+	 * @param sig
+	 * @param size
+	 * @param offset
+	 * @param samplerate
+	 * @param h
+	 * @param endtime
+	 * @return
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	public LinkedHashMap<Double,Double> writeFreqMagnHadoop(int[] sig, int size, int offset, float samplerate,float h, float endtime) throws IOException, InterruptedException{
 		LinkedHashMap<Double,Double> freqMagn= new LinkedHashMap<Double,Double>();
 		

@@ -19,6 +19,11 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import audiofinger.STFT;
 import audiofinger.Spectrogram;
 
+/**
+ * 
+ * @author Paco
+ *
+ */
 public class SpectrogramMapReduce {
 	
 	public static int[] sig; 
@@ -82,7 +87,8 @@ public class SpectrogramMapReduce {
 		FileInputFormat.addInputPath(job, new Path(file));
 		FileOutputFormat.setOutputPath(job, new Path(folder));
 	 
-		System.exit(job.waitForCompletion(true) ? 0 : 1);
+		//System.exit(job.waitForCompletion(true) ? 0 : 1);
+		job.waitForCompletion(true);
 	}
 	
 }//end of class

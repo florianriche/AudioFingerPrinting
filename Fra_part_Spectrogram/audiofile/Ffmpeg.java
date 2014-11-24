@@ -8,6 +8,8 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
+import audiofinger.Utils;
+
 /**
  * 
  * @author Paco
@@ -29,6 +31,11 @@ public class Ffmpeg{
 		convertMp3(input, output);
 		float len = getSoundLength("ffmpeg/bin/"+output);
 		System.out.println(len+" seconds");
+		int nb = (int)(len/frame);
+		new Utils().writeFile("audio.txt", "", false);
+		for(int i=1;i<=nb;i++){
+			new Utils().writeFile("audio.txt", ""+i+output, true);
+		}
 		splitWavFile(output, len, frame);
 	}
 	

@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * 
@@ -49,19 +50,15 @@ public class Utils {
 	 * @return
 	 * @throws IOException
 	 */
-	public String readFile(String filepath) throws IOException{
-		String res = null;
+	public ArrayList<String> readFile(String filepath) throws IOException{
+		ArrayList<String> res = new ArrayList<String>();
 	    BufferedReader br = new BufferedReader(new FileReader(filepath));
 	    try {
-	        StringBuilder sb = new StringBuilder();
 	        String line = br.readLine();
-
 	        while (line != null) {
-	            sb.append(line);
-	            sb.append(System.lineSeparator());
-	            line = br.readLine();
+	           res.add(line);
+	           line = br.readLine();
 	        }
-	        res = sb.toString();
 	    } finally {
 	        br.close();
 	    }
