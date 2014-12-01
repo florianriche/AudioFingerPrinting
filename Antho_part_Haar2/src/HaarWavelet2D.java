@@ -43,7 +43,7 @@ public class HaarWavelet2D {
 		
 		for(int i = 0 ;i<matrix.length ; i++){
 			for(int j = 0 ; j <matrix[0].length ; j++){
-				ListValues.add(matrix[i][j]);
+				ListValues.add(Math.abs(matrix[i][j]));
 			}
 		}
 		
@@ -56,7 +56,7 @@ public class HaarWavelet2D {
 		
 		for(int i = 0 ;i<matrix.length ; i++){
 			for(int j = 0 ; j < matrix[0].length ; j++){
-				matrix[i][j] = (matrix[i][j]<ThreSholdValue)?0:matrix[i][j];
+				matrix[i][j] = (Math.abs(matrix[i][j])<ThreSholdValue)?0:matrix[i][j];
 			}
 		}
 		
