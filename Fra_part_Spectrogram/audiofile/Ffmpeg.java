@@ -2,6 +2,7 @@ package audiofile;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
@@ -17,7 +18,7 @@ import audiofinger.Utils;
  */
 public class Ffmpeg{
 	
-	public String ffmpegpath = "ffmpeg\\bin"; 
+	public String ffmpegpath = "Audiodoop"; 
 	
 	/**
 	 * Convert mp3 into multiple wave chuncks
@@ -26,17 +27,18 @@ public class Ffmpeg{
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	public void fromMp3ToSplit(String input, int frame) throws IOException, InterruptedException{
+	public void fromMp3ToSplit(String input, int frame,String folder) throws IOException, InterruptedException{
 		String output = input.replace("mp3","wav");
 		convertMp3(input, output);
-		float len = getSoundLength("ffmpeg/bin/"+output);
+		float len = getSoundLength(folder+output);
 		System.out.println(len+" seconds");
 		int nb = (int)(len/frame);
-		new Utils().writeFile("audio.txt", "", false);
+		new Utils().writeFile(folder+"audio.txt", "", false);
 		for(int i=1;i<=nb;i++){
-			new Utils().writeFile("audio.txt", ""+i+output, true);
+			new Utils().writeFile(folder+"audio.txt", ""+i+output, true);
 		}
 		splitWavFile(output, len, frame);
+		System.out.println("TRUC");
 	}
 	
 	/**
@@ -47,12 +49,15 @@ public class Ffmpeg{
 	 * @throws InterruptedException
 	 */
 	public void splitWavFile(String file, float length, int frame) throws InterruptedException{
-		FFSplit ffsplit = null;
+		ArrayList<FFSplit> threadlist = new ArrayList<FFSplit>();
 		for(int i=0;i<length;i+=frame){
-			ffsplit = new FFSplit(frame,i, file);
+			FFSplit ffsplit = new FFSplit(frame,i, file);
+			threadlist.add(ffsplit);
 			ffsplit.start();
 		}
-		ffsplit.join();
+		for(int j=0;j<threadlist.size();j+=frame){
+			threadlist.get(j).join();
+		}
 	}
 	
 	/**

@@ -1,12 +1,10 @@
 package hadoop;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.StringTokenizer;
+import java.util.TreeMap;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -16,54 +14,50 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
-import audiofinger.STFT;
-import audiofinger.Spectrogram;
+import audiofinger.HaarWavelet2D;
 
 /**
  * 
  * @author Paco
  *
  */
-public class SpectrogramMapReduce {
-	
-	public static int[] sig; 
-	public static int framesize;
-	public static float samplerate;
-	public static float h;
-	public static float endtime;
-
+public class HaarWaveletMapReduce {
 	
 	public static class Map extends Mapper<Object, Text, Text, Text>{
 		public void map(Object key, Text value, Context context)throws IOException, InterruptedException {
-			StringTokenizer itr = new StringTokenizer(value.toString());
-			while (itr.hasMoreTokens()) {
-				String[] values = itr.nextToken().trim().split(",");
-				IntWritable outputKey = new IntWritable(Integer.parseInt(values[0]));
-				IntWritable outputValue = new IntWritable(Integer.parseInt(values[1]));
-				context.write(new Text(""+outputKey), new Text(""+outputValue));
-			}
+				String[] values = value.toString().trim().split("\t");
+				//val0 is key<=>freq zone
+				//val1 is value <=>time zone
+				//val2 is value <=> magn value
+				context.write(new Text(""+values[0]), new Text(""+values[1]+","+values[2]));
 		}
 	}
 
 	
 	public static class Reduce extends Reducer<Text,Text,Text,Text> {				
 		public void reduce(Text key, Iterable<Text> values,Context context)throws IOException, InterruptedException {
-			STFT stft = new STFT();
-			int val = 0;
+			
+			TreeMap<Integer, Double> map = new TreeMap<Integer, Double>();
+			
 			for (Text value : values){
-				val = Integer.parseInt(value.toString());
+				String[] valsplit = value.toString().split(",");
+				map.put(Integer.parseInt(valsplit[0]), Double.parseDouble(valsplit[1]));
 			}
-			LinkedHashMap<Double,Double> plop = stft.writeFreqMagnHadoop(sig, framesize, val, samplerate, h, endtime);
-			Object[] freq = plop.keySet().toArray();//get frequencies
-			Object[] magn = plop.values().toArray();//get magnitudes
-			Spectrogram spectro = new Spectrogram();
-			spectro.setAccuracy(4);
-			spectro.calculateZones(stft, freq, magn);
-			Object[] valzones = spectro.getZones().values().toArray();
-			for(int v=0;v<valzones.length;v++){
-				context.write(new Text(""+v), new Text(""+key.toString()+"\t"+valzones[v].toString()));
+			//matrix for row decomposition
+			double[] matrix = new double[map.values().size()]; 
+			for(int i=0;i<matrix.length;i++){
+				matrix[i]=map.get(i);
+				//System.out.println(i+" "+matrix[i]);
 			}
+			
+			//process row
+			matrix = new HaarWavelet2D().decompositionRow(matrix);
+			for(int j=0;j<matrix.length;j++){
+				context.write(key, new Text(""+j+"\t"+matrix[j]));
+			}
+			
 		}
+		
 	}
 
 	
@@ -71,7 +65,7 @@ public class SpectrogramMapReduce {
 		Configuration conf = new Configuration();
 		Job job = Job.getInstance(conf);
 	 
-		job.setJarByClass(SpectrogramMapReduce.class);
+		job.setJarByClass(HaarWaveletMapReduce.class);
 		job.setMapperClass(Map.class);
 		job.setReducerClass(Reduce.class);
 		
@@ -86,5 +80,5 @@ public class SpectrogramMapReduce {
 	 
 		job.waitForCompletion(true);
 	}
-	
-}//end of class
+
+}

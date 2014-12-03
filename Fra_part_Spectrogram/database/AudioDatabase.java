@@ -2,6 +2,8 @@ package database;
 
 import java.util.ArrayList;
 
+import process.Configuration;
+
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
@@ -162,7 +164,7 @@ public class AudioDatabase {
 		String finger = "";
 		ArrayList<String> fingerlist = new ArrayList<String>();
 		for(int i=0;i<nb;i++){
-			finger += " fingerprint"+i+" text,";
+			finger += " fingerprint"+i+" blob,";
 			fingerlist.add("fingerprint"+i);
 		}
 		cassandra.executeRequest("CREATE TABLE fingerprints (ID int, ID_music int,"+finger+"PRIMARY KEY (ID));");

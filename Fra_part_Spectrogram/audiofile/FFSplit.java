@@ -10,7 +10,7 @@ import java.io.IOException;
  */
 public class FFSplit extends Thread{
 
-	public String ffmpegpath = "ffmpeg\\bin"; 
+	public String ffmpegpath = "Audiodoop"; 
 	public int frame = 0;
 	public int iter = 0;
 	public String file = "";
