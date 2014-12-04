@@ -6,6 +6,9 @@ import hadoop.MapReduceSpectrogram;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import database.AudioDatabase;
+import database.Cassandra;
+
 import audiofile.Ffmpeg;
 import audiofinger.Signature;
 import audiofinger.Utils;
@@ -83,16 +86,12 @@ public class BigProcess {
 			
 			byte[]  fingerprint = new Signature().fingerprint(booleansSignature, 50);
 			
+			//insert fingerprint into database
 			/*
 			Cassandra cassandra = new Cassandra();
-			cassandra.connectToKeyspace("127.0.0.1", "plop");
-			//AudioDatabase db = new AudioDatabase(cassandra);
-			ByteBuffer trucc = ByteBuffer.wrap(fingerprint);
-			PreparedStatement ps = cassandra.session.prepare("INSERT INTO signaturebis (id,sign) VALUES (?,?)");
-			BoundStatement b = new BoundStatement(ps);
-			b.setInt(0, 3+k);
-			b.setBytes(1, trucc);
-			cassandra.session.execute(b);		
+			cassandra.connectToKeyspace(conf.CASSANDRA_IP, conf.CASSANDRA_KEYSPACE);
+			AudioDatabase db = new AudioDatabase(cassandra);
+			db.insertOneFingerprint(1, 1, fingerprint, 0);
 			cassandra.closeConnection();
 			*/
 		}	

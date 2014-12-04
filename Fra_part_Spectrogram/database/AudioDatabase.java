@@ -1,9 +1,12 @@
 package database;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 import process.Configuration;
 
+import com.datastax.driver.core.BoundStatement;
+import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
@@ -31,11 +34,13 @@ public class AudioDatabase {
 	 * @param nbcol
 	 * @return
 	 */
-	public ArrayList<Integer> selectIdsmusicFromFingerprint(String fingerprint, int nbcol){
+	public ArrayList<Integer> selectIdsmusicFromFingerprint(byte[] fingerprint, int nbcol){
 		ArrayList<Integer> idlist = new ArrayList<Integer>();
-		fingerprint = "'"+fingerprint+"'";
-		for(int i=0;i<nbcol;i++){
-			ResultSet res = cassandra.getResultRequest("SELECT id_music FROM fingerprints WHERE fingerprint"+i+" = "+fingerprint+";");
+		for(int i=0;i<nbcol;i++){	
+			PreparedStatement ps = cassandra.prepareRequest("SELECT * FROM fingerprints WHERE fingerprint"+i+" = ? ;");
+			BoundStatement b = new BoundStatement(ps);
+			b.setBytes(0, ByteBuffer.wrap(fingerprint));
+			ResultSet res = cassandra.getResultRequest(b);
 			for (Row row : res) {
 				idlist.add(row.getInt("id_music"));
 				System.out.println(row.getInt("id_music"));
@@ -58,6 +63,14 @@ public class AudioDatabase {
 		}
 		return output;
 	}
+	
+	/**
+	 * 
+	 * @param numfingerprint
+	 */
+	public void addFingerprintColumn(int numfingerprint){
+		addColumn("fingerprints", "fingerprint"+numfingerprint, "blob", true);
+	}
 		
 	/**
 	 * Insert one fingerprint for a music into the fingerprints tables
@@ -66,7 +79,7 @@ public class AudioDatabase {
 	 * @param fingerprint
 	 * @param numfingerprint
 	 */
-	public void insertOneFingerprint(int id, int idmusic, String fingerprint, int numfingerprint){
+	public void insertOneFingerprint(int id, int idmusic, byte[] fingerprint, int numfingerprint){
 		try{
 			cassandra.executeRequest("SELECT fingerprint"+numfingerprint+" FROM fingerprints;");
 		}
@@ -74,8 +87,12 @@ public class AudioDatabase {
 			System.out.println("The column of fingerprint is not available");
 			return;
 		}
-		fingerprint = "'"+fingerprint+"'";
-		cassandra.executeRequest("INSERT INTO fingerprints (ID, ID_music, fingerprint"+numfingerprint+") VALUES ("+id+","+idmusic+","+fingerprint+");");
+		PreparedStatement ps = cassandra.prepareRequest("INSERT INTO fingerprints (id,id_music,fingerprint"+numfingerprint+") VALUES (?,?,?)");
+		BoundStatement b = new BoundStatement(ps);
+		b.setInt(0, id);
+		b.setInt(1, idmusic);
+		b.setBytes(2, ByteBuffer.wrap(fingerprint));
+		cassandra.executeRequest(b);
 		if(new Configuration().DEBUG_MODE){
 			System.out.println("Fingerprint added : "+id+","+idmusic+","+fingerprint);
 		}

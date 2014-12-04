@@ -9,4 +9,7 @@ public class Configuration {
 	final public int POINTS_NB_FFT = 4096;
 	final public int FRAME_SIZE = 485;
 	final public int SEC_SPLIT = 2;
+	
+	final public String CASSANDRA_KEYSPACE = "audiofinger";
+	final public String CASSANDRA_IP = "127.0.0.1";
 }

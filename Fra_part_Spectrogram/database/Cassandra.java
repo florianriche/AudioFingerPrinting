@@ -1,6 +1,8 @@
 package database;
 
+import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 
@@ -24,11 +26,37 @@ public class Cassandra {
 	}
 	
 	/**
+	 * Get the result of a request
+	 * @param b
+	 * @return
+	 */
+	public ResultSet getResultRequest(BoundStatement b){
+		return session.execute(b);
+	}
+	
+	/**
 	 * Execute a Cassandra request
 	 * @param req
 	 */
 	public void executeRequest(String req){
 		session.execute(req);
+	}
+	
+	/**
+	 * Execute a Cassandra request (bis)
+	 * @param b
+	 */
+	public void executeRequest(BoundStatement b){
+		session.execute(b);
+	}
+	
+	/**
+	 * Prepare statement for request
+	 * @param s
+	 * @return
+	 */
+	public PreparedStatement prepareRequest(String s){
+		return session.prepare(s);	
 	}
 	
 	/**
