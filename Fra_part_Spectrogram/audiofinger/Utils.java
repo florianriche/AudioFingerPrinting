@@ -45,7 +45,7 @@ public class Utils {
 			e.printStackTrace();
 		}
 		if(new Configuration().DEBUG_MODE){
-			 System.out.println("File "+filepath+" has been written");
+			// System.out.println("File "+filepath+" has been written");
 		}
 	}
 	

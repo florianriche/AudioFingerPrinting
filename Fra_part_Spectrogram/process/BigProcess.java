@@ -13,17 +13,46 @@ import audiofile.Ffmpeg;
 import audiofinger.Signature;
 import audiofinger.Utils;
 
-public class BigProcess {
+/**
+ * 
+ * @author Paco
+ *
+ */
+public class BigProcess extends Thread{
 
 	public long durationProcess = 0; // execution time of the process 
+	public int id_music = 0;
+	public String filename = "";
 
 	/**
-	 * 
+	 * BigProcess Constructor
+	 * @param id_music
+	 * @param file
+	 */
+	public BigProcess(int id_music, String filename) {
+		this.id_music = id_music;
+		this.filename = filename;
+	}
+
+	/**
+	 * BigProcess Runnable
+	 */
+	public void run(){
+		try {
+			computeTheProcess();
+		} 
+		catch (InterruptedException | IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Compute the AudioFingerPrinting process
 	 * @param filename
 	 * @throws InterruptedException
 	 * @throws IOException
 	 */
-	public void computeTheProcess(String filename) throws InterruptedException, IOException{
+	public synchronized void computeTheProcess() throws InterruptedException, IOException{
 		System.out.println(">>>>>>>>>>>>>>>>>> Begin AudioFingerPrinting : "+filename+" <<<<<<<<<<<<<<<<<<");
 		
 		long startTime = System.nanoTime();
@@ -34,16 +63,16 @@ public class BigProcess {
 		//Split the audio file
 		System.out.println(">>>>>>>>>>>>>>>>>> Split the file <<<<<<<<<<<<<<<<<<");
 		Ffmpeg ffmpeg = new Ffmpeg();	
-		ffmpeg.fromMp3ToSplit(filename, conf.SEC_SPLIT, conf.OUTPUT_FOLDER);	
+		ffmpeg.fromMp3ToSplit(filename, conf.FILE_SECONDS_SPLIT, conf.OUTPUT_FOLDER);	
 		
-		ArrayList<String> audiolist = new Utils().readFile(conf.OUTPUT_FOLDER+"audio.txt");
+		ArrayList<String> audiolist = new Utils().readFile(conf.OUTPUT_FOLDER+filename.replace(".mp3", "")+"audio.txt");
 		
 		//Compute spectrograms
 		System.out.println(">>>>>>>>>>>>>>>>>> Compute Spectrograms <<<<<<<<<<<<<<<<<<");
 		ArrayList<MapReduceSpectrogram> threadlist1 = new ArrayList<MapReduceSpectrogram>();
 		for(int i=0;i<audiolist.size();i++){
 			String t = audiolist.get(i);
-			MapReduceSpectrogram mapreduceaudio = new MapReduceSpectrogram(conf.OUTPUT_FOLDER+t, conf.POINTS_NB_FFT, conf.FRAME_SIZE, conf.OUTPUT_FOLDER+t.replace(".wav", ""));
+			MapReduceSpectrogram mapreduceaudio = new MapReduceSpectrogram(conf.OUTPUT_FOLDER+t, conf.FFT_POINTS_NB, conf.STFT_FRAME_SIZE, conf.OUTPUT_FOLDER+t.replace(".wav", ""));
 			threadlist1.add(mapreduceaudio);
 			mapreduceaudio.start();
 		}
@@ -57,7 +86,7 @@ public class BigProcess {
 		ArrayList<MapReduceHaar> threadlist2 = new ArrayList<MapReduceHaar>();
 		for(int j=0;j<audiolist.size();j++){
 			String name = audiolist.get(j).replace(".wav","");	
-			MapReduceHaar mapreducehaar = new MapReduceHaar(name,conf.THRESHOLD,conf.OUTPUT_FOLDER);
+			MapReduceHaar mapreducehaar = new MapReduceHaar(name,conf.HAAR_THRESHOLD,conf.OUTPUT_FOLDER);
 			threadlist2.add(mapreducehaar);
 			mapreducehaar.start();
 		}	
@@ -65,8 +94,14 @@ public class BigProcess {
 			threadlist2.get(j).join();//wait for haar wavelet threads
 		}
 		
-		//Compute the signature
+		//Compute the signature and put it in database
 		System.out.println(">>>>>>>>>>>>>>>>>> Compute Signature and Insertion into Database <<<<<<<<<<<<<<<<<<");
+		//initialize database
+		Cassandra cassandra = new Cassandra();
+		cassandra.connectToKeyspace(conf.CASSANDRA_IP, conf.CASSANDRA_KEYSPACE);
+		AudioDatabase db = new AudioDatabase(cassandra);		
+		//signature
+		int overlap = 0;
 		for(int k=0;k<audiolist.size();k++){
 			String name = audiolist.get(k).replace(".wav","");		
 
@@ -89,19 +124,18 @@ public class BigProcess {
 					booleansSignature.add(false);		
 				}
 			}
-			
-			byte[]  fingerprint = new Signature().fingerprint(booleansSignature, 50);
-			
-			//insert fingerprint into database
-			/*
-			Cassandra cassandra = new Cassandra();
-			cassandra.connectToKeyspace(conf.CASSANDRA_IP, conf.CASSANDRA_KEYSPACE);
-			AudioDatabase db = new AudioDatabase(cassandra);
-			db.insertOneFingerprint(1, 1, fingerprint, 0);
-			cassandra.closeConnection();
-			*/
+			//fingerprint and decomposition into subfingerprints
+			byte[]  fingerprint = new Signature().fingerprint(booleansSignature, conf.SIGNATURE_SIZE);			
+			ArrayList<byte[]> subfingerprint = new Signature().Decomposition(fingerprint, conf.SIGNATURE_SUB_SIZE);
+			int counter = 0;
+			for(int p=0;p<subfingerprint.size();p++){
+				//insert fingerprint into database
+				db.insertOneFingerprint(id_music, id_music, subfingerprint.get(p), p+overlap);
+				counter++;
+			}
+			overlap += counter;
 		}	
-		
+		cassandra.closeConnection();
 		
 		long endTime = System.nanoTime();
 		setDurationProcess((endTime - startTime) / 1000000);

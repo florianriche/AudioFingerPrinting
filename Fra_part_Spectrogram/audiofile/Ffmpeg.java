@@ -31,11 +31,11 @@ public class Ffmpeg{
 		String output = input.replace("mp3","wav");
 		convertMp3(input, output);
 		float len = getSoundLength(folder+output);
-		System.out.println(len+" seconds");
+		//System.out.println(len+" seconds");
 		int nb = (int)(len/frame);
-		new Utils().writeFile(folder+"audio.txt", "", false);
+		new Utils().writeFile(folder+input.replace(".mp3", "")+"audio.txt", "", false);
 		for(int i=1;i<=nb;i++){
-			new Utils().writeFile(folder+"audio.txt", ""+i+output, true);
+			new Utils().writeFile(folder+input.replace(".mp3", "")+"audio.txt", ""+i+output, true);
 		}
 		splitWavFile(output, len, frame);
 	}

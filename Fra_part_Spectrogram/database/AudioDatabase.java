@@ -88,7 +88,9 @@ public class AudioDatabase {
 			cassandra.executeRequest("SELECT fingerprint"+numfingerprint+" FROM fingerprints;");
 		}
 		catch(InvalidQueryException e){
-			System.out.println("The column of fingerprint is not available");
+			//System.out.println("The column of fingerprint is not available");
+			addColumn("fingerprints", "fingerprint"+numfingerprint, "blob", true);
+			insertOneFingerprint(id,idmusic,fingerprint,numfingerprint);
 			return;
 		}
 		PreparedStatement ps = cassandra.prepareRequest("INSERT INTO fingerprints (id,id_music,fingerprint"+numfingerprint+") VALUES (?,?,?)");
