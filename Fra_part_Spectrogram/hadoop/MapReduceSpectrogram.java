@@ -1,5 +1,6 @@
 package hadoop;
 
+import process.Configuration;
 import audiofinger.AudioWave;
 import audiofinger.Utils;
 
@@ -52,19 +53,29 @@ public class MapReduceSpectrogram extends Thread{
 		AudioWave sound = new AudioWave();
 		int[] x = sound.dataSignal(audiofile);
 		
-		System.out.println(""+sound.getFilename());
+		if(new Configuration().DEBUG_MODE){
+			System.out.println(""+sound.getFilename());
+		}
 		
 		float sample_rate = sound.getSampleRate();
-		System.out.println("Sample rate = "+sample_rate);
+		if(new Configuration().DEBUG_MODE){
+			System.out.println("Sample rate = "+sample_rate);
+		}
 		
 		float T = sound.getLengthSound();
-		System.out.println("T = "+T+ " (length of sampled sound in seconds)");
+		if(new Configuration().DEBUG_MODE){
+			System.out.println("T = "+T+ " (length of sampled sound in seconds)");
+		}
 		
 		int n = sound.getEqPoints();
-		System.out.println("n = "+n+" (number of equidistant points)");
+		if(new Configuration().DEBUG_MODE){
+			System.out.println("n = "+n+" (number of equidistant points)");
+		}
 		
 		float h = sound.getIntervalTime();
-		System.out.println("h = "+h+" (length of each time interval in seconds)");
+		if(new Configuration().DEBUG_MODE){
+			System.out.println("h = "+h+" (length of each time interval in seconds)");
+		}
 		
 		int iter = 0;
 		new Utils().writeFile(outputfolder+".txt", "", false);
@@ -80,7 +91,10 @@ public class MapReduceSpectrogram extends Thread{
 		SpectrogramMapReduce.samplerate=sample_rate;
 		SpectrogramMapReduce.h=h;
 		SpectrogramMapReduce.endtime=T;
-		dodoop.doMapReduce(outputfolder+".txt",outputfolder);
+		if(new Configuration().DEBUG_MODE){
+			System.out.println("Process Spectrogram");
+		}
+		dodoop.doMapReduce(outputfolder+".txt",outputfolder);		
 	}
 	
 }//end of class

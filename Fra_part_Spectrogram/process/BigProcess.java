@@ -24,18 +24,22 @@ public class BigProcess {
 	 * @throws IOException
 	 */
 	public void computeTheProcess(String filename) throws InterruptedException, IOException{
+		System.out.println(">>>>>>>>>>>>>>>>>> Begin AudioFingerPrinting : "+filename+" <<<<<<<<<<<<<<<<<<");
+		
 		long startTime = System.nanoTime();
 		
 		//Initialize configuration
 		Configuration  conf = new Configuration();
 		
 		//Split the audio file
+		System.out.println(">>>>>>>>>>>>>>>>>> Split the file <<<<<<<<<<<<<<<<<<");
 		Ffmpeg ffmpeg = new Ffmpeg();	
 		ffmpeg.fromMp3ToSplit(filename, conf.SEC_SPLIT, conf.OUTPUT_FOLDER);	
 		
 		ArrayList<String> audiolist = new Utils().readFile(conf.OUTPUT_FOLDER+"audio.txt");
 		
 		//Compute spectrograms
+		System.out.println(">>>>>>>>>>>>>>>>>> Compute Spectrograms <<<<<<<<<<<<<<<<<<");
 		ArrayList<MapReduceSpectrogram> threadlist1 = new ArrayList<MapReduceSpectrogram>();
 		for(int i=0;i<audiolist.size();i++){
 			String t = audiolist.get(i);
@@ -49,6 +53,7 @@ public class BigProcess {
 		
 		
 		//Compute haar wavelets and selection by threshold
+		System.out.println(">>>>>>>>>>>>>>>>>> Compute Haar Wavelets <<<<<<<<<<<<<<<<<<");
 		ArrayList<MapReduceHaar> threadlist2 = new ArrayList<MapReduceHaar>();
 		for(int j=0;j<audiolist.size();j++){
 			String name = audiolist.get(j).replace(".wav","");	
@@ -61,6 +66,7 @@ public class BigProcess {
 		}
 		
 		//Compute the signature
+		System.out.println(">>>>>>>>>>>>>>>>>> Compute Signature and Insertion into Database <<<<<<<<<<<<<<<<<<");
 		for(int k=0;k<audiolist.size();k++){
 			String name = audiolist.get(k).replace(".wav","");		
 
@@ -99,7 +105,7 @@ public class BigProcess {
 		
 		long endTime = System.nanoTime();
 		setDurationProcess((endTime - startTime) / 1000000);
-		System.out.println("End of big process !");
+		System.out.println(">>>>>>>>>>>>>>>>>> End of AudioFingerPrinting : "+filename+" <<<<<<<<<<<<<<<<<<");
 	}
 
 	/**

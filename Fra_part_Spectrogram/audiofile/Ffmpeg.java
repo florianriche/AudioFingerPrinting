@@ -9,6 +9,8 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
+import process.Configuration;
+
 import audiofinger.Utils;
 
 /**
@@ -17,9 +19,7 @@ import audiofinger.Utils;
  *
  */
 public class Ffmpeg{
-	
-	public String ffmpegpath = "Audiodoop"; 
-	
+		
 	/**
 	 * Convert mp3 into multiple wave chuncks
 	 * @param input
@@ -38,7 +38,6 @@ public class Ffmpeg{
 			new Utils().writeFile(folder+"audio.txt", ""+i+output, true);
 		}
 		splitWavFile(output, len, frame);
-		System.out.println("TRUC");
 	}
 	
 	/**
@@ -58,6 +57,9 @@ public class Ffmpeg{
 		for(int j=0;j<threadlist.size();j+=frame){
 			threadlist.get(j).join();
 		}
+		if(new Configuration().DEBUG_MODE){
+			 System.out.println("End of split");
+		}
 	}
 	
 	/**
@@ -68,10 +70,23 @@ public class Ffmpeg{
 	 * @throws InterruptedException
 	 */
 	public void convertMp3(String file, String output) throws IOException, InterruptedException{
-		String command = ffmpegpath+"\\ffmpeg.exe"+" -i "+file+" "+output;
-		Process p = Runtime.getRuntime().exec(command,null,new File(ffmpegpath)); 
+		SystemUtils system = new SystemUtils();
+		String command = "";
+		if(system.isWindows()){
+			command = new Configuration().OUTPUT_FOLDER.replace("/", "")+"\\ffmpeg.exe"+" -i "+file+" "+output;
+		}
+		else if(system.isLinux() || system.isMac()){
+			command = new Configuration().OUTPUT_FOLDER+"ffmpeg"+" -i "+file+" "+output;
+		}
+		else{
+			System.out.println("Command is not available for your OS");
+			return;
+		}
+		Process p = Runtime.getRuntime().exec(command,null,new File(new Configuration().OUTPUT_FOLDER.replace("/", ""))); 
         p.waitFor(); 
-        System.out.println(file+" converted in "+output);
+        if(new Configuration().DEBUG_MODE){
+        	System.out.println(file+" converted in "+output);
+		}
 	}
 	
 	/**

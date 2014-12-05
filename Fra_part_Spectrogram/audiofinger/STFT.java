@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 
+import process.Configuration;
+
 /**
  * 
  * @author Paco
@@ -89,8 +91,6 @@ public class STFT {
 		
 		float timeend = offset*h;	
 		if(timeend>endtime){return freqMagn;}
-		
-		System.out.println("timebegin: "+timebegin+" // timeend: "+timeend);
 
 		//limit array to the given offset
 		int test[] = new int[size];
@@ -115,23 +115,16 @@ public class STFT {
 		//order by highest magnitude
 		Collections.sort(res,Collections.reverseOrder());
 
-//		freqMagn.clear();
 		freqMagn= new LinkedHashMap<Double,Double>(); // List1 :  param1=frequency, param2=magnitude
 
 		//calculate freq and magnitude
 		for(int i=0;i<res.size();i++){
-			//double amplitude = 20*Math.log(2 * res[i]/n);
-//			double magnitude = copyres.get(i);
 			double magnitude = res.get(i);
-
 			double frequency = (copyres.indexOf(res.get(i)) *(sig.length/res.size())* samplerate)/(sig.length);
-//			double frequency = (copyres.indexOf(copyres.get(i)) * samplerate)/res.size();
-//			double frequency = i * h / T * sample_rate;
 			if(frequency>freqMin && frequency<freqMax){
 				freqMagn.put(frequency, magnitude);
 			}			
 		}
-		System.out.println("End FFT !");
 		return freqMagn;
 	}
 	

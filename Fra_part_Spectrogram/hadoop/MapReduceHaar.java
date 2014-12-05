@@ -6,6 +6,8 @@ import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import process.Configuration;
+
 import audiofinger.Utils;
 
 /**
@@ -49,6 +51,9 @@ public class MapReduceHaar extends Thread{
 		HaarWaveletMapReduce haarhadoop = new HaarWaveletMapReduce();
 		
 		//process rows
+		if(new Configuration().DEBUG_MODE){
+			System.out.println("Process Haar : rows");
+		}
 		haarhadoop.doMapReduce(folder+name+"/part-r-00000", folder+"outhaarrow"+name);
 		//transpose
 		BufferedWriter rowhaarwrite = new BufferedWriter(new FileWriter((new File(folder+"resrowhaar"+name))));
@@ -61,6 +66,9 @@ public class MapReduceHaar extends Thread{
 		rowhaarwrite.close();
 		
 		// process column
+		if(new Configuration().DEBUG_MODE){
+			System.out.println("Process Haar : column");
+		}
 		haarhadoop.doMapReduce(folder+"resrowhaar"+name, folder+"outhaarcolumn"+name);
 		// transpose
 		BufferedWriter columnhaarwrite = new BufferedWriter(new FileWriter((new File(folder+"outHaarFinal"+name))));
@@ -73,6 +81,9 @@ public class MapReduceHaar extends Thread{
 		columnhaarwrite.close();			
 		
 		//Filter threshold
+		if(new Configuration().DEBUG_MODE){
+			System.out.println("Process Haar : Filter");
+		}
 		ArrayList<String> Newoutput = new Utils().readFile(folder+"outHaarFinal"+name);
 		ArrayList<Float> values = new ArrayList<>();
 		for (String output : Newoutput) {
@@ -81,6 +92,9 @@ public class MapReduceHaar extends Thread{
 		}
 		
 		//sort values and get the threholdvalue% most important
+		if(new Configuration().DEBUG_MODE){
+			System.out.println("Process Haar : Threshold");
+		}
 		Collections.sort(values, Collections.reverseOrder());
 		int ThresholdIndex = (int) (values.size() * threshold);
 		float ThreSholdValue = values.get(ThresholdIndex);

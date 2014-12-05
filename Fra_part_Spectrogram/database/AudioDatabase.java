@@ -43,7 +43,9 @@ public class AudioDatabase {
 			ResultSet res = cassandra.getResultRequest(b);
 			for (Row row : res) {
 				idlist.add(row.getInt("id_music"));
-				System.out.println(row.getInt("id_music"));
+				if(new Configuration().DEBUG_MODE){
+					System.out.println("ID_MUSIC= "+row.getInt("id_music"));
+				}
 			}
 		}
 		return idlist;
@@ -59,7 +61,9 @@ public class AudioDatabase {
 		ResultSet res = cassandra.getResultRequest("SELECT * FROM musics WHERE id_music = "+idmusic);
 		for (Row row : res) {
 			output = row.getInt("id_music")+" "+row.getString("artist")+" "+row.getString("title")+" "+row.getInt("length");
-			System.out.println(row.getInt("id_music")+" "+row.getString("artist")+" "+row.getString("title")+" "+row.getInt("length"));
+			 if(new Configuration().DEBUG_MODE){
+				System.out.println("ID_MUSIC="+row.getInt("id_music")+" Artist="+row.getString("artist")+" Title="+row.getString("title")+" Length="+row.getInt("length"));
+			 }
 		}
 		return output;
 	}

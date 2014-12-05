@@ -1,5 +1,7 @@
 package database;
 
+import process.Configuration;
+
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.PreparedStatement;
@@ -64,6 +66,9 @@ public class Cassandra {
 	 */
 	public void closeConnection(){
 		cluster.close();
+		if(new Configuration().DEBUG_MODE){
+			System.out.println("Connection is closed");
+		}
 	}
 	
 	/**
@@ -75,6 +80,9 @@ public class Cassandra {
 	public void connectToKeyspace(String host, String database){
 		cluster = Cluster.builder().addContactPoint(host).build();
 		session = cluster.connect(database);
+		if(new Configuration().DEBUG_MODE){
+			System.out.println("Connection to "+database+" keyspace, on "+host+" is OK");
+		}
 	}
 
 }//end of class

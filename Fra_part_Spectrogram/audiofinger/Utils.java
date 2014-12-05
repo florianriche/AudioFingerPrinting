@@ -8,6 +8,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import process.Configuration;
+
 /**
  * 
  * @author Paco
@@ -42,6 +44,9 @@ public class Utils {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		if(new Configuration().DEBUG_MODE){
+			 System.out.println("File "+filepath+" has been written");
+		}
 	}
 	
 	/**
@@ -62,6 +67,9 @@ public class Utils {
 	    } finally {
 	        br.close();
 	    }
+	    if(new Configuration().DEBUG_MODE){
+			 System.out.println("File "+filepath+" has been read");
+		}
 	    return res;
 	}
 
