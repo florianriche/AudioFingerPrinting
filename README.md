@@ -9,21 +9,30 @@ Introduction  Anthony
 Team Organization / Project process / Project Organisation  Florian
 
 Algorithm audio fingerprinting 
+
         Spectogram creation François
+    
         Wavelet Transform Anthony
+    
         Signature creation Florian
+    
         Database storage Florian
 
 Implementation
+
         waveprint algorithm Anthony
+
         Cassandra implementation François
+
         MapReduce implementation François + Florian
 
 
 Results and Discussion 
+
        Results UnpeuToutlemonde  
+
        Discussion  UnpeuToutlemonde  
-       
+  
 
 Conclusion Florian
        
