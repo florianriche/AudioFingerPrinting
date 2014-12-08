@@ -299,9 +299,9 @@ public class AudioDatabase {
 	 * @param Decomposition
 	 */
 	public void insertFingerprint(int id, int idmusic,
-			ArrayList<byte[]> Decomposition) {
+			ArrayList<byte[]> Decomposition, int overlap) {
 		for (int l = 0; l < Decomposition.size(); l++) {
-			insertOneSubFingerprint(id, idmusic, Decomposition.get(l), l);
+			insertOneSubFingerprint(id, idmusic, Decomposition.get(l), l+overlap);
 		}
 	}
 

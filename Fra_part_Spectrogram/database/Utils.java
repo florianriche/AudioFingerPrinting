@@ -2,10 +2,6 @@ package database;
 
 import java.util.ArrayList;
 
-import audioWavePrint.ConversionBits;
-import audioWavePrint.CreationMatriceTest;
-import audioWavePrint.Signature;
-
 public class Utils {
 
 	/**
@@ -81,7 +77,5 @@ public class Utils {
 		}
 		return score;
 	}
-	
-
-	
-}
+		
+}//end of class

@@ -127,13 +127,9 @@ public class BigProcess extends Thread{
 			//fingerprint and decomposition into subfingerprints
 			byte[]  fingerprint = new Signature().fingerprint(booleansSignature, conf.SIGNATURE_SIZE);			
 			ArrayList<byte[]> subfingerprint = new Signature().Decomposition(fingerprint, conf.SIGNATURE_SUB_SIZE);
-			int counter = 0;
-			for(int p=0;p<subfingerprint.size();p++){
-				//insert fingerprint into database
-				db.insertOneFingerprint(id_music, id_music, subfingerprint.get(p), p+overlap);
-				counter++;
-			}
-			overlap += counter;
+			//insert fingerprint into database
+			db.insertFingerprint(id_music, id_music, subfingerprint, overlap);
+			overlap += subfingerprint.size();
 		}	
 		cassandra.closeConnection();
 		

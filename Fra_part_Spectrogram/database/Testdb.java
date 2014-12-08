@@ -9,7 +9,6 @@ import java.util.Random;
  *
  */
 public class Testdb {
-
 	/**
 	 * @param args
 	 */
@@ -32,7 +31,7 @@ public class Testdb {
 		Random R = new Random();
 		int id = R.nextInt(1000);
 		
-		db.insertFingerprint(id,id, decompo);
+		db.insertFingerprint(id,id, decompo,0);
 		db.insertMusics(id, "A beautiful title"+id, "kyle minogue", id);
 		
 		byte[] signature = db.selectFullSignatureofID(id,l);
@@ -58,5 +57,5 @@ public class Testdb {
 		
 		cassandra.closeConnection();
 	}
-
-}
+	
+}//end of class
