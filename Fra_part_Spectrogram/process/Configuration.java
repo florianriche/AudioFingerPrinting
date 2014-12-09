@@ -23,7 +23,7 @@ public class Configuration {
 	
 	final public double HAAR_THRESHOLD = 0.05; //Threshold value for the selection after haar (has to be inferior to 1)
 	final public int FFT_POINTS_NB = 4096; //Number of points for each FFT (has to be power of 2) 
-	final public int STFT_FRAME_SIZE = 485; //Frame size of the STFT (in ms)
+	final public int STFT_OVERLAP = 485; //Overlap for the frame of the STFT (in ms)
 	final public int FILE_SECONDS_SPLIT = 2; //Duration of each split wav file
 	final public int SIGNATURE_SIZE = 50; //Length of each fingerprint
 	final public int SIGNATURE_SUB_SIZE = 5; //Number of sub fingerprints

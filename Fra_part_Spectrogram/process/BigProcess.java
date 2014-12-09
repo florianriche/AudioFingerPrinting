@@ -72,7 +72,7 @@ public class BigProcess extends Thread{
 		ArrayList<MapReduceSpectrogram> threadlist1 = new ArrayList<MapReduceSpectrogram>();
 		for(int i=0;i<audiolist.size();i++){
 			String t = audiolist.get(i);
-			MapReduceSpectrogram mapreduceaudio = new MapReduceSpectrogram(conf.OUTPUT_FOLDER+t, conf.FFT_POINTS_NB, conf.STFT_FRAME_SIZE, conf.OUTPUT_FOLDER+t.replace(".wav", ""));
+			MapReduceSpectrogram mapreduceaudio = new MapReduceSpectrogram(conf.OUTPUT_FOLDER+t, conf.FFT_POINTS_NB, conf.STFT_OVERLAP, conf.OUTPUT_FOLDER+t.replace(".wav", ""));
 			threadlist1.add(mapreduceaudio);
 			mapreduceaudio.start();
 		}
